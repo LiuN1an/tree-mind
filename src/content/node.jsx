@@ -34,6 +34,7 @@ export const Nodes = ({ node }) => {
   const [collapse, setCollapse] = useState(false);
   const [height, setHeight] = useState("0px");
   const [childSelect, setChildSelect] = useState(false);
+  const [childs, setChilds] = useState(node.children || []);
   const containRef = useRef(null);
   const valueRef = useRef(null);
   const childsRef = useRef(null);
@@ -55,11 +56,15 @@ export const Nodes = ({ node }) => {
       const onChildSelect = node.vm.onChildSelectChange((status) => {
         setChildSelect(status);
       });
+      const onChildsAdd = node.onChildrenAdd((childs) => {
+        setChilds(childs);
+      });
 
       return () => {
         onSelect();
         onCollapse();
         onChildSelect();
+        onChildsAdd();
       };
     }
   }, [node, childsRef.current]);
@@ -81,17 +86,14 @@ export const Nodes = ({ node }) => {
   }, [node]);
 
   const children = useMemo(() => {
-    return (
-      node.children &&
-      node.children.map((child) => {
-        return (
-          <div key={child.id}>
-            <Nodes node={child} />
-          </div>
-        );
-      })
-    );
-  }, [node]);
+    return childs.map((child) => {
+      return (
+        <div key={child.id}>
+          <Nodes node={child} />
+        </div>
+      );
+    });
+  }, [childs]);
 
   if (!node) return null;
 
@@ -150,7 +152,7 @@ export const Nodes = ({ node }) => {
         </div>
       )}
       <div
-        className={classnames("transition-all duration-300")}
+        className={classnames("transition-all duration-100")}
         style={{ marginBottom: height }}
         ref={childsRef}
       >

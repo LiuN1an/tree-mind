@@ -1,3 +1,4 @@
+import { setStorage } from "@/utils";
 import { DATA_KEY } from "./model";
 
 export const MOCK = [
@@ -94,7 +95,15 @@ export const MOCK = [
   },
 ];
 
-window.localStorage.setItem(
-  DATA_KEY,
-  JSON.stringify([...MOCK, ...MOCK, ...MOCK])
-);
+export const storeMock = async () => {
+  if (process.env.MODE === "development") {
+    window.localStorage.setItem(
+      DATA_KEY,
+      JSON.stringify([...MOCK, ...MOCK, ...MOCK])
+    );
+  } else {
+    return await setStorage({
+      [DATA_KEY]: JSON.stringify([...MOCK, ...MOCK, ...MOCK]),
+    });
+  }
+};

@@ -2,13 +2,14 @@ import EventEimtter from "events";
 import { getStorage, getStorageDemo } from "@/utils";
 import { DATA_KEY } from "./constant";
 import { Node } from "./node";
+import { storeMock } from "../mock";
 
 export const loop = (item, path, flat) => {
   if (!item) return;
   const parent = path[path.length - 1];
   if (Array.isArray(item)) {
     for (const child of item) {
-      const node = new Node(child.value, parent, false);
+      const node = new Node(child.value, parent);
       parent && parent.addChild(node);
       flat.push(node);
       loop(child.children, [...path, node], flat);
@@ -28,10 +29,11 @@ export class Idea {
   constructor() {}
 
   async init() {
+    await storeMock();
     const data =
       process.env.MODE === "development"
         ? await getStorageDemo(DATA_KEY)
-        : await getStorage(DATA_KEY);
+        : JSON.parse(await getStorage(DATA_KEY));
     if (data) {
       console.log({ data });
       this.records = data;
@@ -92,6 +94,11 @@ export class Idea {
     for (const [index, node] of this.flatNodes.entries()) {
       fn(node, index, this.flatNodes);
     }
+  }
+
+  save() {
+    const data = this.flatNodes[0].root().export();
+    console.log({ data });
   }
 }
 

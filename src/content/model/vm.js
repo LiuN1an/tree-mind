@@ -26,6 +26,14 @@ export class VM {
 
   addValueRef(dom) {
     this.valueRef = dom;
+    this.#_emitter.emit("value-ref", dom);
+  }
+
+  onValueRef(fn) {
+    this.#_emitter.on("value-ref", fn);
+    return () => {
+      this.#_emitter.off("value-ref", fn);
+    };
   }
 
   select(props) {

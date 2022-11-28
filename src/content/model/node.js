@@ -19,13 +19,38 @@ export class Node {
 
   depth = 0;
 
-  constructor(value, parent, isRoot) {
+  constructor(value, parent, isRoot = false) {
     this.id = Math.random().toString(12).slice(2);
     this.value = value;
     this.parent = parent;
     this.children = undefined;
     this.isRoot = isRoot;
     this.depth = this.parent ? this.parent.depth + 1 : 0;
+  }
+
+  path() {
+    let _path = [];
+    let _node = this;
+    while (_node.parent) {
+      _path.unshift(_node);
+      _node = _node.parent;
+    }
+    return _path;
+  }
+
+  root() {
+    let _node = this;
+    while (_node.parent) {
+      _node = _node.parent;
+    }
+    return _node;
+  }
+
+  export() {
+    return {
+      value: this.value,
+      children: (this.children || []).map((child) => child.export()),
+    };
   }
 
   addChild(child) {
@@ -87,6 +112,13 @@ export class Node {
 
   onChange(fn) {
     this.#_emitter.on("change", fn);
+    return () => {
+      this.#_emitter.off("change", fn);
+    };
+  }
+
+  onChildrenAdd(fn) {
+    this.#_emitter.on("add", fn);
     return () => {
       this.#_emitter.off("change", fn);
     };

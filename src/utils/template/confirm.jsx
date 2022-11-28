@@ -2,11 +2,14 @@ import React, { useEffect } from "react";
 
 export const Confirm = ({ onClose, onCancel, onOk }) => {
   useEffect(() => {
-    const handleKeyDown = (event) => {
+    const handleKeyDown = async (event) => {
       if (event.key === "Enter") {
-        onClose?.();
+        if (await onOk?.()) {
+          onClose?.();
+        }
       }
       if (event.key === "Escape") {
+        await onCancel?.();
         onClose?.();
       }
       event.preventDefault();

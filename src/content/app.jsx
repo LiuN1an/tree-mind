@@ -1,19 +1,37 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { callModal, useTailWindFade } from "../utils/index";
 import classnames from "classnames";
 import { idea, CELL_HEIGHT, getParentChain } from "./model";
 import { Nodes } from "./node";
+import { Node } from "./model/node";
 import { motion } from "framer-motion";
 import throttle from "lodash.throttle";
 import "./index.less";
 
 export default function App() {
-  const { setOpen: setCover, style: styleCover } = useTailWindFade({
-    open: process.env.NODE_ENV === "development" ? true : undefined,
+  const [query] = useState("我是加进去的");
+
+  const treeRef = useRef(null);
+  const {
+    open: coverOpen,
+    setOpen: setCover,
+    style: styleCover,
+  } = useTailWindFade({
+    open: process.env.NODE_ENV === "development" ? false : undefined,
   });
 
-  const { setOpen: setModal, style: styleModal } = useTailWindFade({
-    open: process.env.NODE_ENV === "development" ? true : undefined,
+  const {
+    open: modelOpen,
+    setOpen: setModal,
+    style: styleModal,
+  } = useTailWindFade({
+    open: process.env.NODE_ENV === "development" ? false : undefined,
   });
 
   const contentRef = useRef(null);
@@ -23,6 +41,14 @@ export default function App() {
   const [bars, setBars] = useState([]);
   const [ghost, setGhost] = useState(null);
   const [notAllowMove, setNotAllowMove] = useState(false);
+
+  const change = useCallback(
+    (status) => {
+      setCover(status);
+      setModal(status);
+    },
+    [setCover, setModal]
+  );
 
   const [inputBtn] = useState(
     document.querySelector(
@@ -47,67 +73,83 @@ export default function App() {
     }
   }, [barRef.current, bars]);
 
-  useEffect(() => {
-    if (process.env.NODE_ENV !== "development") {
-      const handleKeyDown = (event) => {
-        if (event.key == "Enter") {
-          event.preventDefault();
-          event.stopPropagation();
-          if (inputBtn.value == "123") {
-            // searchBtn.click();
-            setCover(true);
-            setModal(true);
-            inputBtn.blur();
-          } else {
-            setCover(false);
-            setModal(false);
-          }
-        }
-        if (event.key == "Escape") {
-          inputBtn.focus();
-          setCover(false);
-          setModal(false);
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        if (event.keyCode === 38) {
-        }
-        if (event.keyCode === 40) {
-        }
-      };
-      const handleKeyUp = () => {};
+  //   useEffect(() => {
+  //     if (process.env.NODE_ENV !== "development") {
+  //       const handleKeyDown = (event) => {
+  //         if (event.key == "Enter") {
+  //           event.preventDefault();
+  //           event.stopPropagation();
+  //           if (inputBtn.value == "123") {
+  //             // searchBtn.click();
+  //             setCover(true);
+  //             setModal(true);
+  //             inputBtn.blur();
+  //           } else {
+  //             setCover(false);
+  //             setModal(false);
+  //           }
+  //         }
+  //         if (event.key == "Escape") {
+  //           inputBtn.focus();
+  //           setCover(false);
+  //           setModal(false);
+  //           event.preventDefault();
+  //           event.stopPropagation();
+  //         }
+  //         if (event.keyCode === 38) {
+  //         }
+  //         if (event.keyCode === 40) {
+  //         }
+  //       };
+  //       const handleKeyUp = () => {};
 
-      document.addEventListener("keydown", handleKeyDown);
-      document.addEventListener("keyup", handleKeyUp);
-      return () => {
-        document.removeEventListener("keydown", handleKeyDown);
-        document.removeEventListener("keyup", handleKeyUp);
-      };
-    }
-  }, [inputBtn, searchBtn]);
+  //       document.addEventListener("keydown", handleKeyDown);
+  //       document.addEventListener("keyup", handleKeyUp);
+  //       return () => {
+  //         document.removeEventListener("keydown", handleKeyDown);
+  //         document.removeEventListener("keyup", handleKeyUp);
+  //       };
+  //     }
+  //   }, [inputBtn, searchBtn]);
 
   useEffect(() => {
     const removeInit = idea.onInit(({ data, rootNode }) => {
       setNode(rootNode);
-      setTimeout(() => {
-        rootNode.children[0].vm.select();
-        const rect =
-          rootNode.children[0].vm.valueRef.getBoundingClientRect();
-        setCoordinate(
-          {
-            x: 0,
-            y: 0,
-            width: rect.width + 2,
-          },
-          100
-        );
-      }, 500);
+      rootNode.children[0].vm.onValueRef((dom) => {
+        setTimeout(() => {
+          const rect = dom.getBoundingClientRect();
+          setCoordinate(
+            {
+              x: 0,
+              y: 0,
+              width: rect.width + 2,
+            },
+            100
+          );
+          rootNode.children[0].vm.select();
+        }, 100);
+      });
     });
-    idea.init();
     return () => {
       removeInit();
     };
   }, []);
+
+  useEffect(() => {
+    const handleTrigger = (evnet) => {
+      const { altKey, key, ctrlKey } = event;
+      if (altKey && key === "q") {
+        if (!(modelOpen && coverOpen)) {
+          change(true);
+          idea.init();
+        }
+      }
+    };
+    document.addEventListener("keydown", handleTrigger);
+    return () => {
+      document.removeEventListener("keydown", handleTrigger);
+    };
+  }, [coverOpen, modelOpen, change]);
 
   useEffect(() => {
     if (node && contentRef.current && barRef.current) {
@@ -146,6 +188,8 @@ export default function App() {
       let isOpenModal = false;
 
       const move = throttle((event) => {
+        const [node] = idea.selected;
+
         if (event.key === "Enter") {
           if (!isOpenModal) {
             callModal({
@@ -154,20 +198,19 @@ export default function App() {
                 isOpenModal = false;
               },
               async onOk() {
-                console.log("ok");
-                return true
+                node.addChild(new Node(query, node));
+                idea.save();
+                change(false);
+                return true;
               },
               async onCancel() {
                 console.log("cancel");
               },
             });
             isOpenModal = true;
-            event.preventDefault();
-            event.stopPropagation();
           }
         }
 
-        const [node] = idea.selected;
         // 上
         if (event.keyCode === 38) {
           const prev = node.inOrderPrev(
@@ -208,21 +251,41 @@ export default function App() {
             node.vm.uncollapse();
           }
         }
-      }, 100);
+      }, 150);
+
       const handleMove = (event) => {
-        move(event);
-        event.preventDefault();
+        if (coverOpen) {
+          move(event);
+          const { altKey, key, ctrlKey } = event;
+          if (altKey && key === "q") {
+            change(false);
+          }
+          if (ctrlKey && key === "f") {
+            alert("f");
+          }
+          event.preventDefault();
+          event.stopPropagation();
+        }
       };
-      document.addEventListener("keydown", handleMove);
+
+      document.body.addEventListener("keydown", handleMove);
       return () => {
-        document.removeEventListener("keydown", handleMove);
+        document.body.removeEventListener("keydown", handleMove);
         removeSelectChange && removeSelectChange();
       };
     }
-  }, [node, contentRef.current, barRef.current]);
+  }, [
+    node,
+    contentRef.current,
+    barRef.current,
+    treeRef.current,
+    query,
+    change,
+    coverOpen,
+  ]);
 
   return (
-    <div>
+    <div ref={treeRef}>
       <div
         data-x="cover"
         className={classnames(

@@ -49,6 +49,10 @@ module.exports = {
         ],
       },
       {
+        test: /\.less$/,
+        use: ["style-loader", "css-loader", "less-loader"],
+      },
+      {
         test: /\.css$/,
         use: [
           MiniCssExtractPlugin.loader,
@@ -97,7 +101,6 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(),
-    new tailwindScrollbar(),
     new MiniCssExtractPlugin({
       filename: "[name].css",
       chunkFilename: "[id].css",
@@ -111,5 +114,11 @@ module.exports = {
     new CopyPlugin({
       patterns: [{ from: "public" }],
     }),
+    new webpack.DefinePlugin({
+      "process.env": {
+        MODE: JSON.stringify(process.env.MODE),
+      },
+    }),
+    tailwindScrollbar,
   ],
 };

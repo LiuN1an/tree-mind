@@ -61,7 +61,7 @@ export const promiseValue = () => {
 
 export const getStorage = async (key) => {
   const { promise, resolve } = promiseValue();
-  chrome.storage.local.get([key], (result) => {
+  chrome.storage.sync.get([key], (result) => {
     resolve(result[key]);
   });
   return promise;
@@ -69,7 +69,7 @@ export const getStorage = async (key) => {
 
 export const setStorage = async (saveProps) => {
   const { promise, resolve } = promiseValue();
-  chrome.storage.local.set(saveProps, (result) => {
+  chrome.storage.sync.set(saveProps, (result) => {
     resolve();
   });
   return promise;
