@@ -99,11 +99,17 @@ export const storeMock = async () => {
   if (process.env.MODE === "development") {
     window.localStorage.setItem(
       DATA_KEY,
-      JSON.stringify([...MOCK, ...MOCK, ...MOCK])
+      JSON.stringify({
+        value: undefined,
+        children: [...MOCK, ...MOCK, ...MOCK],
+      })
     );
   } else {
     return await setStorage({
-      [DATA_KEY]: JSON.stringify([...MOCK, ...MOCK, ...MOCK]),
+      [DATA_KEY]: JSON.stringify({
+        value: undefined,
+        children: [...MOCK, ...MOCK, ...MOCK],
+      }),
     });
   }
 };

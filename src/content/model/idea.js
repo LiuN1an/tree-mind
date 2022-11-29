@@ -1,5 +1,10 @@
 import EventEimtter from "events";
-import { getStorage, getStorageDemo } from "@/utils";
+import {
+  getStorage,
+  setStorage,
+  setStorageDemo,
+  getStorageDemo,
+} from "@/utils";
 import { DATA_KEY } from "./constant";
 import { Node } from "./node";
 import { storeMock } from "../mock";
@@ -26,21 +31,29 @@ export class Idea {
 
   selected = [];
 
+  root = null;
+
   constructor() {}
 
   async init() {
-    await storeMock();
+    // await storeMock();
     const data =
       process.env.MODE === "development"
         ? await getStorageDemo(DATA_KEY)
         : JSON.parse(await getStorage(DATA_KEY));
-    if (data) {
-      console.log({ data });
-      this.records = data;
-      const root = new Node(null, null, true);
-      loop(data, [root], this.flatNodes);
-      this.#_emitter.emit("init", { rootNode: root, data });
-    }
+    console.log({ data });
+    this.records = data.children || [];
+    const root = new Node(null, null, true);
+    loop(this.records, [root], this.flatNodes);
+    this.root = root;
+    this.#_emitter.emit("init", { rootNode: root, data: this.records });
+  }
+
+  fresh() {
+    this.root = null;
+    this.records = [];
+    this.flatNodes = [];
+    this.selected = [];
   }
 
   pushSelected(node) {
@@ -96,9 +109,11 @@ export class Idea {
     }
   }
 
-  save() {
-    const data = this.flatNodes[0].root().export();
-    console.log({ data });
+  async save() {
+    const data = this.root.export();
+    process.env.MODE === "development"
+      ? setStorageDemo(DATA_KEY, JSON.stringify(data))
+      : setStorage({ [DATA_KEY]: JSON.stringify(data) });
   }
 }
 

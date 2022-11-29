@@ -1,3 +1,4 @@
+import { DATA_KEY } from "@/content/model";
 import { useEffect, useState } from "react";
 
 export const useTailWindFade = (option) => {
@@ -77,6 +78,13 @@ export const setStorage = async (saveProps) => {
 
 export const getStorageDemo = async (key) => {
   const { promise, resolve } = promiseValue();
-  resolve(JSON.parse(window.localStorage.getItem(key)));
+  resolve(JSON.parse(window.localStorage.getItem(key) || "{}"));
+  return promise;
+};
+
+export const setStorageDemo = async (key, props) => {
+  const { promise, resolve } = promiseValue();
+  window.localStorage.setItem(key, props);
+  resolve();
   return promise;
 };

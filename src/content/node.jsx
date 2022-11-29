@@ -40,17 +40,23 @@ export const Nodes = ({ node }) => {
   const childsRef = useRef(null);
 
   useEffect(() => {
+    setChilds(node.children || []);
+  }, [node]);
+
+  useEffect(() => {
     if (node && childsRef.current) {
       const dom = childsRef.current;
       const onSelect = node.vm.onSelectChange((select) => {
         setSelect(select);
       });
       const onCollapse = node.vm.onCollapseChange(({ status }) => {
-        setCollapse(status);
-        if (status) {
-          setHeight(`-${dom.offsetHeight}px`);
-        } else {
-          setHeight("0px");
+        if (!node.isRoot) {
+          setCollapse(status);
+          if (status) {
+            setHeight(`-${dom.offsetHeight}px`);
+          } else {
+            setHeight("0px");
+          }
         }
       });
       const onChildSelect = node.vm.onChildSelectChange((status) => {
@@ -106,7 +112,7 @@ export const Nodes = ({ node }) => {
         select && "border-slate-900",
         childSelect && "bg-slate-300"
       )}
-      ref={containRef}
+      ref={(ele) => (containRef.current = ele)}
       onClick={(event) => {
         node.vm.select({ exclusive: true });
         event.stopPropagation();
@@ -131,7 +137,7 @@ export const Nodes = ({ node }) => {
             select ? "text-white font-bold" : "hover:bg-slate-100"
           )}
           style={{ height: `${CELL_HEIGHT}px` }}
-          ref={valueRef}
+          ref={(ele) => (valueRef.current = ele)}
         >
           {node.value}
           {!isLeaf && (
@@ -154,7 +160,7 @@ export const Nodes = ({ node }) => {
       <div
         className={classnames("transition-all duration-100")}
         style={{ marginBottom: height }}
-        ref={childsRef}
+        ref={(ele) => (childsRef.current = ele)}
       >
         {children}
       </div>
