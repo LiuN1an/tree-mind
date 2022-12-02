@@ -49,6 +49,28 @@ export class Idea {
     this.#_emitter.emit("init", { rootNode: root, data: this.records });
   }
 
+  flat(node) {
+    const flatNodes = [];
+    const dsl = (_n) => {
+      flatNodes.push(_n);
+      if (_n.children) {
+        _n.children.forEach((child) => {
+          child && dsl(child);
+        });
+      }
+    };
+    dsl(node);
+    return flatNodes;
+  }
+
+  remove(node) {
+    const newFlat = this.flat(node);
+    this.flatNodes = this.flatNodes.filter(
+      (child) => !newFlat.includes(child)
+    );
+    console.log(newFlat);
+  }
+
   fresh() {
     this.root = null;
     this.records = [];

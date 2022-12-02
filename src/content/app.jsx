@@ -18,14 +18,6 @@ export default function App() {
   const [query] = useState("我是加进去的");
 
   const {
-    open: coverOpen,
-    setOpen: setCover,
-    style: styleCover,
-  } = useTailWindFade({
-    open: process.env.NODE_ENV === "development" ? false : undefined,
-  });
-
-  const {
     open: modelOpen,
     setOpen: setModal,
     style: styleModal,
@@ -51,11 +43,10 @@ export default function App() {
 
   const change = useCallback(
     (status) => {
-      setCover(status);
       setModal(status);
       !status && setSelectRoot(status);
     },
-    [setCover, setModal, setSelectRoot]
+    [setModal, setSelectRoot]
   );
 
   const [inputBtn] = useState(
@@ -121,7 +112,7 @@ export default function App() {
   //   }, [inputBtn, searchBtn]);
 
   useEffect(() => {
-    if (modelOpen && coverOpen) {
+    if (modelOpen) {
       const removeInit = idea.onInit(({ data, rootNode }) => {
         setNode(rootNode);
         if (rootNode.children && rootNode.children.length) {
@@ -150,13 +141,13 @@ export default function App() {
     } else {
       idea.fresh();
     }
-  }, [modelOpen, coverOpen]);
+  }, [modelOpen]);
 
   useEffect(() => {
     const handleTrigger = (evnet) => {
       const { altKey, key, ctrlKey } = event;
       if (altKey && key === "q") {
-        if (!(modelOpen && coverOpen)) {
+        if (!modelOpen) {
           change(true);
           idea.init();
         }
@@ -166,7 +157,7 @@ export default function App() {
     return () => {
       document.removeEventListener("keydown", handleTrigger);
     };
-  }, [coverOpen, modelOpen, change]);
+  }, [modelOpen, change]);
 
   useEffect(() => {
     if (node && contentRef.current && barRef.current) {
@@ -207,7 +198,47 @@ export default function App() {
       const move = throttle((event) => {
         const [node] = idea.selected;
 
-        if (event.key === "Enter") {
+        if (event.keyCode === 8) {
+          if (!isOpenModal) {
+            callModal({
+              type: "confirm",
+              text: "You want to delete this idea?",
+              onClose() {
+                isOpenModal = false;
+              },
+              async onOk() {
+                let selected;
+                const prev = node.inOrderPrev(
+                  (node) => !node.vm.isBeCollapsed()
+                );
+                if (prev && prev.vm) {
+                  selected = prev;
+                } else {
+                  const nxt = node.inOrderNext(
+                    (node) => !node.vm.isBeCollapsed()
+                  );
+                  if (nxt && nxt.vm) {
+                    selected = nxt;
+                  }
+                }
+                if (selected) {
+                  selected.vm.select({ exclusive: true });
+                } else {
+                  setSelectRoot(true);
+                }
+                node.remove();
+                idea.save();
+                return true;
+              },
+              async onCancel() {
+                console.log("cancel");
+              },
+            });
+            isOpenModal = true;
+          }
+        }
+
+        if (event.keyCode === 13) {
           if (!isOpenModal) {
             callModal({
               type: "confirm",
@@ -216,9 +247,9 @@ export default function App() {
               },
               async onOk() {
                 if (isSelectRoot) {
-                  idea.root.addChild(new Node(query, idea.root));
+                  idea.root.addChild(new Node(Math.random(), idea.root));
                 } else {
-                  node.addChild(new Node(query, node));
+                  node.addChild(new Node(Math.random(), node));
                 }
                 idea.save();
                 change(false);
@@ -286,7 +317,7 @@ export default function App() {
       }, 150);
 
       const handleMove = (event) => {
-        if (coverOpen) {
+        if (modelOpen) {
           move(event);
           const { altKey, key, ctrlKey } = event;
           if (altKey && key === "q") {
@@ -320,7 +351,7 @@ export default function App() {
     barRef.current,
     query,
     change,
-    coverOpen,
+    modelOpen,
     isSelectRoot,
   ]);
 
@@ -329,7 +360,7 @@ export default function App() {
       <div
         data-x="cover"
         className={classnames(
-          ...styleCover(
+          ...styleModal(
             "fixed top-0 left-0 right-0 bottom-0 bg-black z-[1000]",
             "pointer-events-none opacity-0",
             "opacity-60"
@@ -407,11 +438,20 @@ export default function App() {
       <div
         className={classnames(
           ...styleRoot(
+            "fixed top-1/3 left-1/2 w-1/3 h-1/2 -translate-x-1/2 -translate-y-1/3 rounded-lg z-[1000] bg-black",
+            "opacity-0 pointer-events-none",
+            "opacity-60"
+          )
+        )}
+      />
+      <div
+        className={classnames(
+          ...styleRoot(
             "fixed top-1/3 left-1/2 w-1/3 h-1/2 -translate-x-1/2 -translate-y-1/3 rounded-lg z-[1000]",
             "scale-0 pointer-events-none opacity-0",
             "scale-100"
           ),
-          "flex flex-col gap-2 justify-center items-center"
+          "flex flex-col gap-2 justify-center items-center text-white"
         )}
       >
         <div className="w-1/2"> 已到达根节点，请进行以下操作</div>
@@ -426,7 +466,7 @@ export default function App() {
             <path
               d="M417 1c-48.602 0-88 39.399-88 88v346H89c-48.6 0-88 39.399-88 88v412c0 48.6 39.4 88 88 88h314.69c4.341 0.658 8.786 1 13.31 1h517c24.555 0 46.761-10.057 62.724-26.277C1012.943 981.761 1023 959.555 1023 935V523c0-4.524-0.341-8.968-1-13.31V89c0-48.601-39.398-88-88-88H417z m250.036 645.739V389.131c0-27.134 21.977-49.131 49.087-49.131 27.11 0 49.088 21.997 49.088 49.131V745H453.699l31.657 31.657c19.174 19.173 19.167 50.263-0.012 69.441-19.178 19.179-50.268 19.185-69.441 0.013L266 696.207l149.956-149.955c19.179-19.179 50.269-19.185 69.441-0.013 19.172 19.173 19.167 50.263-0.012 69.441l-31.059 31.059h212.71z"
               p-id="2040"
-              fill="#000000"
+              fill="#ffffff"
             ></path>
           </svg>
           <span>{" 放到该目录下"}</span>
@@ -443,7 +483,7 @@ export default function App() {
             <path
               d="M47.104 453.632q0-43.008 20.992-57.856t66.048-14.848q20.48 0 64.512 0.512t93.696 0.512 96.768 0.512 74.752 0.512q38.912 1.024 61.44-6.656t22.528-35.328q0-20.48 1.536-48.64t1.536-48.64q1.024-35.84 20.48-45.568t49.152 14.848q30.72 24.576 71.68 58.368t84.992 69.12 86.016 69.632 74.752 59.904q29.696 24.576 30.208 46.592t-28.16 45.568q-29.696 24.576-70.144 56.32t-83.968 65.536-85.504 67.072-74.752 58.88q-35.84 28.672-58.88 21.504t-22.016-44.032l0-24.576 0-29.696q0-15.36-0.512-30.208t-0.512-27.136q0-25.6-15.36-32.256t-41.984-6.656q-29.696 0-77.824-0.512t-100.352-0.512-101.376-0.512-79.872-0.512q-13.312 0-27.648-2.56t-26.112-9.728-18.944-20.992-7.168-37.376q0-27.648-0.512-53.248t0.512-57.344z"
               p-id="4085"
-              fill="#000000"
+              fill="#ffffff"
             ></path>
           </svg>
           <span>{" 回到下一级继续选择"}</span>

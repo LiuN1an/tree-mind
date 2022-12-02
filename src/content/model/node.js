@@ -60,11 +60,20 @@ export class Node {
     this.children.push(child);
   }
 
-  removeChild(child) {
+  removeChild(child, animate = 300) {
+    child.vm.remove();
     const index = this.children.findIndex((node) => node === child);
     if (index > -1) {
       this.children.splice(index, 1);
     }
+    idea.remove(child);
+    setTimeout(() => {
+      this.#_emitter.emit("remove", this.children);
+    }, animate);
+  }
+
+  remove() {
+    this.parent.removeChild(this);
   }
 
   raise(node) {
@@ -117,10 +126,17 @@ export class Node {
     };
   }
 
+  onChildrenRemove(fn) {
+    this.#_emitter.on("remove", fn);
+    return () => {
+      this.#_emitter.off("remove", fn);
+    };
+  }
+
   onChildrenAdd(fn) {
     this.#_emitter.on("add", fn);
     return () => {
-      this.#_emitter.off("change", fn);
+      this.#_emitter.off("add", fn);
     };
   }
 }

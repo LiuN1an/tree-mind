@@ -89,6 +89,10 @@ export class VM {
     }
   }
 
+  remove() {
+    this.#_emitter.emit("remove");
+  }
+
   collapse() {
     this.#collapse = true;
     this.#_emitter.emit("collapse", { status: true });
@@ -125,6 +129,13 @@ export class VM {
     this.#_emitter.on("collapse", fn);
     return () => {
       this.#_emitter.off("collapse", fn);
+    };
+  }
+
+  onRemove(fn) {
+    this.#_emitter.on("remove", fn);
+    return () => {
+      this.#_emitter.off("remove", fn);
     };
   }
 }

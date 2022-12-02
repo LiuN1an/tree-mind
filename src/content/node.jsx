@@ -33,6 +33,7 @@ export const Nodes = ({ node }) => {
   const [select, setSelect] = useState(false);
   const [collapse, setCollapse] = useState(false);
   const [height, setHeight] = useState("0px");
+  const [containHeight, setContainHeight] = useState("0px");
   const [childSelect, setChildSelect] = useState(false);
   const [childs, setChilds] = useState(node.children || []);
   const containRef = useRef(null);
@@ -44,8 +45,10 @@ export const Nodes = ({ node }) => {
   }, [node]);
 
   useEffect(() => {
-    if (node && childsRef.current) {
+    if (node && childsRef.current && containRef.current) {
       const dom = childsRef.current;
+      const containerDOM = containRef.current;
+
       const onSelect = node.vm.onSelectChange((select) => {
         setSelect(select);
       });
@@ -65,15 +68,24 @@ export const Nodes = ({ node }) => {
       const onChildsAdd = node.onChildrenAdd((childs) => {
         setChilds(childs);
       });
+      const onRemove = node.vm.onRemove(() => {
+        if (!node.isRoot) {
+          setHeight(`-${containerDOM.offsetHeight}px`);
+        }
+      });
+      const onChildsRemove = node.onChildrenRemove((childs) => {
+        setChilds(childs);
+      });
 
       return () => {
         onSelect();
         onCollapse();
         onChildSelect();
         onChildsAdd();
+        onChildsRemove();
       };
     }
-  }, [node, childsRef.current]);
+  }, [node, childsRef.current, containRef.current]);
 
   useEffect(() => {
     if (containRef.current && node) {
@@ -113,6 +125,7 @@ export const Nodes = ({ node }) => {
         childSelect && "bg-slate-300"
       )}
       ref={(ele) => (containRef.current = ele)}
+      style={{ marginBottom: containHeight }}
       onClick={(event) => {
         node.vm.select({ exclusive: true });
         event.stopPropagation();

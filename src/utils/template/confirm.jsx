@@ -1,6 +1,11 @@
 import React, { useEffect } from "react";
 
-export const Confirm = ({ onClose, onCancel, onOk }) => {
+export const Confirm = ({
+  onClose,
+  onCancel,
+  onOk,
+  text = "Your idea will be collected in the directory",
+}) => {
   useEffect(() => {
     const handleKeyDown = async (event) => {
       if (event.key === "Enter") {
@@ -24,7 +29,7 @@ export const Confirm = ({ onClose, onCancel, onOk }) => {
   return (
     <div className="h-full flex flex-col rounded-2xl p-1">
       <div className="flex-1 flex items-center justify-center select-none font-bold p-3">
-        Your idea will be collected in the directory
+        {text}
       </div>
       <div className="p-3 h-12 flex items-center justify-end gap-2">
         <button
