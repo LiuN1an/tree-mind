@@ -69,9 +69,7 @@ export const Nodes = ({ node }) => {
         setChilds(childs);
       });
       const onRemove = node.vm.onRemove(() => {
-        if (!node.isRoot) {
-          setHeight(`-${containerDOM.offsetHeight}px`);
-        }
+        setHeight(`-${containerDOM.offsetHeight}px`);
       });
       const onChildsRemove = node.onChildrenRemove((childs) => {
         setChilds(childs);
@@ -83,6 +81,7 @@ export const Nodes = ({ node }) => {
         onChildSelect();
         onChildsAdd();
         onChildsRemove();
+        onRemove();
       };
     }
   }, [node, childsRef.current, containRef.current]);
