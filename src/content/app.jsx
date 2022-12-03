@@ -116,18 +116,20 @@ export default function App() {
       const removeInit = idea.onInit(({ data, rootNode }) => {
         setNode(rootNode);
         if (rootNode.children && rootNode.children.length) {
-          rootNode.children[0].vm.onValueRef((dom) => {
+          rootNode.children[0].vm.onChildMount((dom) => {
             setTimeout(() => {
-              const rect = dom.getBoundingClientRect();
-              setCoordinate(
-                {
-                  x: 0,
-                  y: 0,
-                  width: rect.width + 2,
-                },
-                100
-              );
-              rootNode.children[0].vm.select();
+              if (dom) {
+                const rect = dom.getBoundingClientRect();
+                setCoordinate(
+                  {
+                    x: 0,
+                    y: 0,
+                    width: rect.width + 2,
+                  },
+                  100
+                );
+                rootNode.children[0].vm.select();
+              }
             }, 100);
           });
         } else {
@@ -198,45 +200,47 @@ export default function App() {
       const move = throttle((event) => {
         const [node] = idea.selected;
 
-        if (event.keyCode === 8) {
-          if (!isOpenModal) {
-            callModal({
-              type: "confirm",
-              text: "You want to delete this idea?",
-              onClose() {
-                isOpenModal = false;
-              },
-              async onOk() {
-                let selected;
-                const prev = node.inOrderPrev(
-                  (node) => !node.vm.isBeCollapsed()
-                );
-                if (prev && prev.vm) {
-                  selected = prev;
-                } else {
-                  const nxt = node.inOrderNext(
-                    (node) => !node.vm.isBeCollapsed()
-                  );
-                  if (nxt && nxt.vm) {
-                    selected = nxt;
-                  }
-                }
-                if (selected) {
-                  selected.vm.select({ exclusive: true });
-                } else {
-                  setSelectRoot(true);
-                }
-                node.remove();
-                idea.save();
-                return true;
-              },
-              async onCancel() {
-                console.log("cancel");
-              },
-            });
-            isOpenModal = true;
-          }
-        }
+        // if (event.keyCode === 8) {
+        //   if (!isOpenModal) {
+        //     callModal({
+        //       type: "confirm",
+        //       text: "Are you to delete this idea?",
+        //       onClose() {
+        //         isOpenModal = false;
+        //       },
+        //       async onOk() {
+        //         let selected;
+        //         const prev = idea.inOrderPrev(
+        //           node,
+        //           (node) => !node.vm.isBeCollapsed()
+        //         );
+        //         if (prev && prev.vm) {
+        //           selected = prev;
+        //         } else {
+        //           const nxt = idea.inOrderNext(
+        //             node,
+        //             (node) => !node.vm.isBeCollapsed()
+        //           );
+        //           if (nxt && nxt.vm) {
+        //             selected = nxt;
+        //           }
+        //         }
+        //         node.remove();
+        //         if (selected) {
+        //           selected.vm.select({ exclusive: true });
+        //         } else {
+        //           setSelectRoot(true);
+        //         }
+        //         idea.save();
+        //         return true;
+        //       },
+        //       async onCancel() {
+        //         console.log("cancel");
+        //       },
+        //     });
+        //     isOpenModal = true;
+        //   }
+        // }
 
         if (event.keyCode === 13) {
           if (!isOpenModal) {
@@ -266,7 +270,8 @@ export default function App() {
         // 上
         if (event.keyCode === 38) {
           if (isSelectRoot) return;
-          const prev = node.inOrderPrev(
+          const prev = idea.inOrderPrev(
+            node,
             (node) => !node.vm.isBeCollapsed()
           );
           if (prev && prev.vm) {
@@ -277,7 +282,8 @@ export default function App() {
         if (event.keyCode === 40) {
           if (isSelectRoot) return;
           if (idea.selected.length > 0) {
-            const nxt = node.inOrderNext(
+            const nxt = idea.inOrderNext(
+              node,
               (node) => !node.vm.isBeCollapsed()
             );
             if (nxt && nxt.vm) {
@@ -400,6 +406,7 @@ export default function App() {
           })}
         </div>
         <div
+          date-x="select-highlight"
           ref={contentRef}
           className={classnames(
             "overflow-auto p-3 flex-1 relative box-border",
@@ -419,8 +426,8 @@ export default function App() {
               height: `${CELL_HEIGHT}px`,
             }}
             animate={{
-              x: activeCoordinate.x || 0,
-              y: activeCoordinate.y || 0,
+              x: activeCoordinate.x || 1,
+              y: activeCoordinate.y || 2,
             }}
             transition={{
               type: "spring",
@@ -438,9 +445,9 @@ export default function App() {
       <div
         className={classnames(
           ...styleRoot(
-            "fixed top-1/3 left-1/2 w-1/3 h-1/2 -translate-x-1/2 -translate-y-1/3 rounded-lg z-[1000] bg-black",
-            "opacity-0 pointer-events-none",
-            "opacity-60"
+            "fixed top-1/3 left-1/2 w-1/3 h-1/2 bg-black -translate-x-1/2 rounded-lg z-[1000]",
+            "translate-y-1/4 opacity-0 pointer-events-none",
+            "-translate-y-1/3 opacity-60"
           )
         )}
       />

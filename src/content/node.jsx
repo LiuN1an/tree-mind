@@ -38,20 +38,39 @@ export const Nodes = ({ node }) => {
   const [childs, setChilds] = useState(node.children || []);
   const containRef = useRef(null);
   const valueRef = useRef(null);
-  const childsRef = useRef(null);
+  const [childsRef, setChildsRef] = useState(null);
 
   useEffect(() => {
-    setChilds(node.children || []);
+    setChilds(node.children ? [...node.children] : []);
   }, [node]);
 
   useEffect(() => {
-    if (node && childsRef.current && containRef.current) {
-      const dom = childsRef.current;
-      const containerDOM = containRef.current;
-
+    if (node) {
       const onSelect = node.vm.onSelectChange((select) => {
         setSelect(select);
       });
+      const onChildSelect = node.vm.onChildSelectChange((status) => {
+        setChildSelect(status);
+      });
+      const onChildsAdd = node.onChildrenAdd((childs) => {
+        setChilds([...childs]);
+      });
+      const onChildsRemove = node.onChildrenRemove((childs) => {
+        setChilds([...childs]);
+      });
+
+      return () => {
+        onSelect();
+        onChildSelect();
+        onChildsAdd();
+        onChildsRemove();
+      };
+    }
+  }, [node]);
+
+  useEffect(() => {
+    if (node && childsRef) {
+      const dom = childsRef;
       const onCollapse = node.vm.onCollapseChange(({ status }) => {
         if (!node.isRoot) {
           setCollapse(status);
@@ -62,33 +81,22 @@ export const Nodes = ({ node }) => {
           }
         }
       });
-      const onChildSelect = node.vm.onChildSelectChange((status) => {
-        setChildSelect(status);
-      });
-      const onChildsAdd = node.onChildrenAdd((childs) => {
-        setChilds(childs);
-      });
+      return () => {
+        onCollapse();
+      };
+    }
+  }, [node, childsRef]);
+
+  useEffect(() => {
+    if (node && containRef.current) {
+      const containerDOM = containRef.current;
+      node.vm.addContainRef(containerDOM);
       const onRemove = node.vm.onRemove(() => {
         setHeight(`-${containerDOM.offsetHeight}px`);
       });
-      const onChildsRemove = node.onChildrenRemove((childs) => {
-        setChilds(childs);
-      });
-
       return () => {
-        onSelect();
-        onCollapse();
-        onChildSelect();
-        onChildsAdd();
-        onChildsRemove();
         onRemove();
       };
-    }
-  }, [node, childsRef.current, containRef.current]);
-
-  useEffect(() => {
-    if (containRef.current && node) {
-      node.vm.addContainRef(containRef.current);
     }
   }, [containRef.current, node]);
 
@@ -99,8 +107,8 @@ export const Nodes = ({ node }) => {
   }, [valueRef.current, node]);
 
   const isLeaf = useMemo(() => {
-    return !(node.children && node.children.length);
-  }, [node]);
+    return childs.length === 0;
+  }, [childs]);
 
   const children = useMemo(() => {
     return childs.map((child) => {
@@ -129,6 +137,7 @@ export const Nodes = ({ node }) => {
         node.vm.select({ exclusive: true });
         event.stopPropagation();
       }}
+      data-x="container"
     >
       {!collapse && !node.isRoot && !isLeaf && (
         <div
@@ -169,13 +178,15 @@ export const Nodes = ({ node }) => {
           )}
         </div>
       )}
-      <div
-        className={classnames("transition-all duration-100")}
-        style={{ marginBottom: height }}
-        ref={(ele) => (childsRef.current = ele)}
-      >
-        {children}
-      </div>
+      {childs.length ? (
+        <div
+          className={classnames("transition-all duration-100")}
+          style={{ marginBottom: height }}
+          ref={(ele) => setChildsRef(ele)}
+        >
+          {children}
+        </div>
+      ) : null}
     </div>
   );
 };

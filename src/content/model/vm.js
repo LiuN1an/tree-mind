@@ -29,7 +29,7 @@ export class VM {
     this.#_emitter.emit("value-ref", dom);
   }
 
-  onValueRef(fn) {
+  onChildMount(fn) {
     this.#_emitter.on("value-ref", fn);
     return () => {
       this.#_emitter.off("value-ref", fn);

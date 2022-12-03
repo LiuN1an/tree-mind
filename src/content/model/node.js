@@ -60,63 +60,18 @@ export class Node {
     this.children.push(child);
   }
 
-  removeChild(child, animate = 300) {
+  removeChild(child) {
     child.vm.remove();
     const index = this.children.findIndex((node) => node === child);
     if (index > -1) {
       this.children.splice(index, 1);
     }
     idea.remove(child);
-    setTimeout(() => {
-      this.#_emitter.emit("remove", this.children);
-    }, animate);
+    this.#_emitter.emit("remove", this.children);
   }
 
   remove() {
     this.parent.removeChild(this);
-  }
-
-  raise(node) {
-    if (node) {
-    } else {
-      this.parent.removeChild(this);
-      this.parent.parent.children.push(this);
-    }
-  }
-
-  /**
-   * 按照前序遍历的顺序返回下一个节点，额外传入一个判断该节点是否准确的条件函数
-   */
-  inOrderNext(conditionFn = () => true) {
-    const index = idea.flatNodes.findIndex((node) => node === this);
-    if (index > -1) {
-      const findNode = (index) => {
-        if (conditionFn(idea.flatNodes[index])) {
-          return idea.flatNodes[index];
-        } else {
-          if (index + 1 >= idea.flatNodes.length) return;
-          return findNode(index + 1);
-        }
-      };
-      if (index + 1 >= idea.flatNodes.length) return;
-      return findNode(index + 1);
-    }
-  }
-
-  inOrderPrev(conditionFn = () => true) {
-    const index = idea.flatNodes.findIndex((node) => node === this);
-    if (index > -1) {
-      const findNode = (index) => {
-        if (conditionFn(idea.flatNodes[index % idea.flatNodes.length])) {
-          return idea.flatNodes[index];
-        } else {
-          if (index - 1 < 0) return;
-          return findNode(index - 1);
-        }
-      };
-      if (index - 1 < 0) return;
-      return findNode(index - 1);
-    }
   }
 
   onChange(fn) {

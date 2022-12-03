@@ -33,8 +33,6 @@ export class Idea {
 
   root = null;
 
-  constructor() {}
-
   async init() {
     // await storeMock();
     const data =
@@ -68,7 +66,6 @@ export class Idea {
     this.flatNodes = this.flatNodes.filter(
       (child) => !newFlat.includes(child)
     );
-    console.log(newFlat);
   }
 
   fresh() {
@@ -136,6 +133,41 @@ export class Idea {
     process.env.MODE === "development"
       ? setStorageDemo(DATA_KEY, JSON.stringify(data))
       : setStorage({ [DATA_KEY]: JSON.stringify(data) });
+  }
+
+  /**
+   * 按照前序遍历的顺序返回下一个节点，额外传入一个判断该节点是否准确的条件函数
+   */
+  inOrderNext(_node, conditionFn = () => true) {
+    const index = idea.flatNodes.findIndex((node) => node === _node);
+    if (index > -1) {
+      const findNode = (index) => {
+        if (conditionFn(idea.flatNodes[index])) {
+          return idea.flatNodes[index];
+        } else {
+          if (index + 1 >= idea.flatNodes.length) return;
+          return findNode(index + 1);
+        }
+      };
+      if (index + 1 >= idea.flatNodes.length) return;
+      return findNode(index + 1);
+    }
+  }
+
+  inOrderPrev(_node, conditionFn = () => true) {
+    const index = idea.flatNodes.findIndex((node) => node === _node);
+    if (index > -1) {
+      const findNode = (index) => {
+        if (conditionFn(idea.flatNodes[index % idea.flatNodes.length])) {
+          return idea.flatNodes[index];
+        } else {
+          if (index - 1 < 0) return;
+          return findNode(index - 1);
+        }
+      };
+      if (index - 1 < 0) return;
+      return findNode(index - 1);
+    }
   }
 }
 
