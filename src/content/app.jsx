@@ -148,7 +148,7 @@ export default function App() {
   useEffect(() => {
     const handleTrigger = (evnet) => {
       const { altKey, key, ctrlKey } = event;
-      if (altKey && key === "q") {
+      if (ctrlKey && key === "q") {
         if (!modelOpen) {
           change(true);
           idea.init();
@@ -181,10 +181,7 @@ export default function App() {
                 behavior: "smooth",
               });
               setCoordinate({
-                x:
-                  (added.depth - 1) * 10 < 0
-                    ? 1
-                    : (added.depth - 1) * 10 + 1,
+                x: (added.depth - 1) * 10 < 0 ? 1 : (added.depth - 1) * 10 + 1,
                 y: CELL_HEIGHT * index + index * 4 - (added.depth - 2) * 2,
                 width: rect.width + 2,
               });
@@ -326,7 +323,7 @@ export default function App() {
         if (modelOpen) {
           move(event);
           const { altKey, key, ctrlKey } = event;
-          if (altKey && key === "q") {
+          if (ctrlKey && key === "q") {
             change(false);
           }
           if (ctrlKey && key === "f") {
