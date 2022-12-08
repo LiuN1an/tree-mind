@@ -7,6 +7,7 @@ const tailwindcss = require("tailwindcss");
 const autoprefixer = require("autoprefixer");
 const portFinderSync = require("portfinder-sync");
 const tailwindScrollbar = require("tailwind-scrollbar");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const PORT = 3000;
 
@@ -54,7 +55,7 @@ module.exports = {
       {
         test: /\.css$/,
         use: [
-          "style-loader",
+          MiniCssExtractPlugin.loader,
           { loader: "css-loader", options: { importLoaders: 1 } },
           {
             loader: "postcss-loader", // postcss loader needed for tailwindcss
@@ -71,6 +72,10 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(),
+    new MiniCssExtractPlugin({
+      filename: "[name].css",
+      chunkFilename: "[id].css",
+    }),
     new HtmlWebpackPlugin({
       template: "./src/content/demo/index.html",
       filename: "content.html",

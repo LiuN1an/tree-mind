@@ -63,7 +63,7 @@ export const promiseValue = () => {
 export const getStorage = async (key) => {
   const { promise, resolve } = promiseValue();
   chrome.storage.sync.get([key], (result) => {
-    resolve(result[key]);
+    resolve(result[key] || "{}");
   });
   return promise;
 };

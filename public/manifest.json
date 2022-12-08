@@ -15,12 +15,12 @@
                 "content.js",
                 "react.js"
             ],
-            "css": [
-                "content.css"
-            ],
             "matches": [
                 "*://*.google.com.hk/*",
                 "*://*.google.com/*"
+            ],
+            "css": [
+                "content.css"
             ],
             "run_at": "document_end"
         }
