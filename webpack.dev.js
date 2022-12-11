@@ -49,16 +49,15 @@ module.exports = {
         ],
       },
       {
-        test: /\.less$/,
-        use: ["style-loader", "css-loader", "less-loader"],
-      },
-      {
-        test: /\.css$/,
+        test: /\.(css|less)$/,
         use: [
           MiniCssExtractPlugin.loader,
-          { loader: "css-loader", options: { importLoaders: 1 } },
           {
-            loader: "postcss-loader", // postcss loader needed for tailwindcss
+            loader: "css-loader",
+            options: { importLoaders: 1 },
+          },
+          {
+            loader: "postcss-loader",
             options: {
               postcssOptions: {
                 ident: "postcss",
@@ -66,16 +65,13 @@ module.exports = {
               },
             },
           },
+          "less-loader",
         ],
       },
     ],
   },
   plugins: [
     new CleanWebpackPlugin(),
-    new MiniCssExtractPlugin({
-      filename: "[name].css",
-      chunkFilename: "[id].css",
-    }),
     new HtmlWebpackPlugin({
       template: "./src/content/demo/index.html",
       filename: "content.html",
@@ -97,6 +93,10 @@ module.exports = {
     }),
     new ReactRefreshWebpackPlugin(),
     tailwindScrollbar,
+    new MiniCssExtractPlugin({
+      filename: "[name].css",
+      chunkFilename: "[id].css",
+    }),
   ],
   devServer: {
     hot: true,

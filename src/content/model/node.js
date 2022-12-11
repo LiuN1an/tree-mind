@@ -19,8 +19,9 @@ export class Node {
 
   depth = 0;
 
+  id = Math.random().toString(12).slice(2);
+
   constructor(value, parent, isRoot = false) {
-    this.id = Math.random().toString(12).slice(2);
     this.value = value;
     this.parent = parent;
     this.children = undefined;

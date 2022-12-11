@@ -48,14 +48,15 @@ module.exports = {
           },
         ],
       },
+    //   {
+    //     test: /\.less$/,
+    //     use: ["style-loader", "css-loader"],
+    //   },
       {
-        test: /\.less$/,
-        use: ["style-loader", "css-loader", "less-loader"],
-      },
-      {
-        test: /\.css$/,
+        test: /\.(css|less)$/,
         use: [
-          MiniCssExtractPlugin.loader,
+          //   MiniCssExtractPlugin.loader,
+          "to-string-loader",
           { loader: "css-loader", options: { importLoaders: 1 } },
           {
             loader: "postcss-loader",
@@ -66,6 +67,7 @@ module.exports = {
               },
             },
           },
+          "less-loader",
         ],
       },
     ],
@@ -101,10 +103,6 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(),
-    new MiniCssExtractPlugin({
-      filename: "[name].css",
-      chunkFilename: "[id].css",
-    }),
     new HtmlWebpackPlugin({
       template: "./src/popup/index.html",
       filename: "popup.html",
@@ -120,5 +118,9 @@ module.exports = {
       },
     }),
     tailwindScrollbar,
+    // new MiniCssExtractPlugin({
+    //   filename: "[name].css",
+    //   chunkFilename: "[id].css",
+    // }),
   ],
 };

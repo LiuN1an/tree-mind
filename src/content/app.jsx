@@ -359,22 +359,25 @@ export default function App() {
   ]);
 
   return (
-    <div>
+    <div className="less-test-container">
       <div
         data-x="cover"
         className={classnames(
           ...styleModal(
-            "fixed top-0 left-0 right-0 bottom-0 bg-black z-[1000]",
+            "fixed top-0 left-0 right-0 bottom-0 bg-black z-[9999]",
             "pointer-events-none opacity-0",
             "opacity-60"
           )
         )}
+        onClick={() => {
+          change(false);
+        }}
       />
       <div
         data-x="modal"
         className={classnames(
           ...styleModal(
-            "fixed top-1/3 left-1/2 w-1/3 h-1/2 bg-white -translate-x-1/2 rounded-lg z-[1000]",
+            "fixed top-1/3 left-1/2 w-1/3 h-1/2 bg-white -translate-x-1/2 rounded-lg z-[9999]",
             "-translate-y-1/2 opacity-0 pointer-events-none",
             "-translate-y-1/3"
           ),
@@ -442,7 +445,7 @@ export default function App() {
       <div
         className={classnames(
           ...styleRoot(
-            "fixed top-1/3 left-1/2 w-1/3 h-1/2 bg-black -translate-x-1/2 rounded-lg z-[1000]",
+            "fixed top-1/3 left-1/2 w-1/3 h-1/2 bg-black -translate-x-1/2 rounded-lg z-[9999]",
             "translate-y-1/4 opacity-0 pointer-events-none",
             "-translate-y-1/3 opacity-60"
           )
@@ -451,7 +454,7 @@ export default function App() {
       <div
         className={classnames(
           ...styleRoot(
-            "fixed top-1/3 left-1/2 w-1/3 h-1/2 -translate-x-1/2 -translate-y-1/3 rounded-lg z-[1000]",
+            "fixed top-1/3 left-1/2 w-1/3 h-1/2 -translate-x-1/2 -translate-y-1/3 rounded-lg z-[9999]",
             "scale-0 pointer-events-none opacity-0",
             "scale-100"
           ),

@@ -6,13 +6,15 @@ import { options } from "./template";
 
 export const createEscape = (props) => {
   const { render } = props;
+  const shadowContainer = document.getElementById("_tree_idea");
   const escapeNode = document.createElement("div");
-  document.body.appendChild(escapeNode);
+  escapeNode.id = "_tree_idea_modal";
+  shadowContainer.shadowRoot.appendChild(escapeNode);
   let root;
   const onClose = () => {
     root.unmount();
-    if (document.body.contains(escapeNode)) {
-      document.body.removeChild(escapeNode);
+    if (shadowContainer.shadowRoot.contains(escapeNode)) {
+      shadowContainer.shadowRoot.removeChild(escapeNode);
     }
   };
   const Child = render({ onClose });
@@ -40,7 +42,7 @@ export const CreateCover = ({
       <div
         className={classnames(
           ...coverStyle(
-            "fixed top-0 bottom-0 left-0 right-0 bg-black z-[1000]",
+            "fixed top-0 bottom-0 left-0 right-0 bg-black z-[9999]",
             "opacity-0",
             "opacity-70"
           )
@@ -59,7 +61,7 @@ export const CreateCover = ({
         style={{ width: width, height: height }}
         className={classnames(
           ...style(
-            "fixed left-1/2 top-1/3 -translate-x-1/2 bg-white rounded-lg z-[1000] ease-scale-cub",
+            "fixed left-1/2 top-1/3 -translate-x-1/2 bg-white rounded-lg z-[9999] ease-scale-cub",
             leaveAnimate,
             enterAnimate
           )

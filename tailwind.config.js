@@ -1,4 +1,5 @@
 module.exports = {
+  important: ["#_tree_idea_shadow", "#_tree_idea_modal"],
   purge: ["./src/**/*.jsx"],
   darkMode: false,
   theme: {
