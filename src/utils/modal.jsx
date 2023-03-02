@@ -3,6 +3,9 @@ import { createRoot, unmountComponentAtNode } from "react-dom/client";
 import classnames from "classnames";
 import { useTailWindFade } from "./hooks";
 import { options } from "./template";
+import { ChakraProvider } from "@chakra-ui/react";
+import createCache from "@emotion/cache";
+import { CacheProvider } from "@emotion/react";
 
 export const createEscape = (props) => {
   const { render } = props;
@@ -17,9 +20,18 @@ export const createEscape = (props) => {
       shadowContainer.shadowRoot.removeChild(escapeNode);
     }
   };
+
+  const myCache = createCache({
+    container: escapeNode,
+    key: "b",
+  });
   const Child = render({ onClose });
   root = createRoot(escapeNode);
-  root.render(<>{Child}</>);
+  root.render(
+    <CacheProvider value={myCache}>
+      <ChakraProvider>{Child}</ChakraProvider>
+    </CacheProvider>
+  );
 };
 
 export const CreateCover = ({

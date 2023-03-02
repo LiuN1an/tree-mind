@@ -1,6 +1,9 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "../app";
+import { ChakraProvider } from "@chakra-ui/react";
+import { CacheProvider } from "@emotion/react";
+import createCache from "@emotion/cache";
 import "../mock";
 import "../index.css";
 
@@ -24,4 +27,16 @@ shadow.appendChild(link);
 const container = document.createElement("div");
 container.id = "_tree_idea_shadow";
 shadow.appendChild(container);
-createRoot(container).render(<App />);
+
+const myCache = createCache({
+  container: shadow,
+  key: "c",
+});
+
+createRoot(container).render(
+  <CacheProvider value={myCache}>
+    <ChakraProvider>
+      <App />
+    </ChakraProvider>
+  </CacheProvider>
+);

@@ -27,6 +27,7 @@
         "file-loader": "^6.2.0",
         "html-webpack-plugin": "^5.5.0",
         "less-loader": "^11.1.0",
+        "loader-utils": "^3.2.1",
         "mini-css-extract-plugin": "^2.6.1",
         "net": "^1.0.2",
         "path": "^0.12.7",
@@ -47,13 +48,17 @@
         "webpack-dev-server": "^4.9.0"
     },
     "dependencies": {
+        "@chakra-ui/react": "^2.5.1",
+        "@emotion/react": "^11.10.6",
+        "@emotion/styled": "^11.10.6",
         "classnames": "^2.3.2",
         "crypto-js": "^4.1.1",
         "daisyui": "^2.41.0",
-        "framer-motion": "^7.6.6",
+        "framer-motion": "^7.10.3",
         "lodash.debounce": "^4.0.8",
         "lodash.throttle": "^4.1.1",
         "react": "^18.1.0",
-        "react-dom": "^18.1.0"
+        "react-dom": "^18.1.0",
+        "react-shadow-dom-retarget-events": "^1.1.0"
     }
 }

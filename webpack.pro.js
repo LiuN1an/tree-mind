@@ -48,10 +48,10 @@ module.exports = {
           },
         ],
       },
-    //   {
-    //     test: /\.less$/,
-    //     use: ["style-loader", "css-loader"],
-    //   },
+      //   {
+      //     test: /\.less$/,
+      //     use: ["to-string-loader", "css-loader", "less-loader"],
+      //   },
       {
         test: /\.(css|less)$/,
         use: [
@@ -66,6 +66,9 @@ module.exports = {
                 plugins: [tailwindcss, autoprefixer],
               },
             },
+          },
+          {
+            loader: "./test.js",
           },
           "less-loader",
         ],

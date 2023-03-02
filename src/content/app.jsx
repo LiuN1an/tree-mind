@@ -181,7 +181,10 @@ export default function App() {
                 behavior: "smooth",
               });
               setCoordinate({
-                x: (added.depth - 1) * 10 < 0 ? 1 : (added.depth - 1) * 10 + 1,
+                x:
+                  (added.depth - 1) * 10 < 0
+                    ? 1
+                    : (added.depth - 1) * 10 + 1,
                 y: CELL_HEIGHT * index + index * 4 - (added.depth - 2) * 2,
                 width: rect.width + 2,
               });
@@ -192,7 +195,7 @@ export default function App() {
         }
       );
 
-      let isOpenModal = false;
+      let isOpenModal = [];
 
       const move = throttle((event) => {
         const [node] = idea.selected;
@@ -240,27 +243,40 @@ export default function App() {
         // }
 
         if (event.keyCode === 13) {
-          if (!isOpenModal) {
+          if (isOpenModal.length === 0) {
+            isOpenModal.push(true);
             callModal({
-              type: "confirm",
+              type: "search",
+              async onOk(input) {
+                isOpenModal.push(true);
+                return await new Promise((resolve) => {
+                  callModal({
+                    type: "confirm",
+                    async onOk() {
+                      if (isSelectRoot) {
+                        idea.root.addChild(new Node(input, idea.root));
+                      } else {
+                        node.addChild(new Node(input, node));
+                      }
+                      idea.save();
+                      change(false);
+                      resolve(true);
+                      return true;
+                    },
+                    async onCancel() {
+                      resolve(false);
+                      console.log("cancel");
+                    },
+                    onClose() {
+                      isOpenModal.pop();
+                    },
+                  });
+                });
+              },
               onClose() {
-                isOpenModal = false;
-              },
-              async onOk() {
-                if (isSelectRoot) {
-                  idea.root.addChild(new Node(Math.random(), idea.root));
-                } else {
-                  node.addChild(new Node(Math.random(), node));
-                }
-                idea.save();
-                change(false);
-                return true;
-              },
-              async onCancel() {
-                console.log("cancel");
+                isOpenModal.pop();
               },
             });
-            isOpenModal = true;
           }
         }
 
@@ -319,26 +335,35 @@ export default function App() {
         }
       }, 150);
 
+      let searching = false;
       const handleMove = (event) => {
         if (modelOpen) {
           move(event);
           const { altKey, key, ctrlKey } = event;
           if (ctrlKey && key === "q") {
+            event.preventDefault();
+            event.stopPropagation();
             change(false);
           }
-          if (ctrlKey && key === "f") {
-            callModal({
-              type: "search",
-              nodes: idea.flatNodes,
-              async onOk() {
-                return true;
-              },
-              async onCancel() {},
-              onClose() {},
-            });
-          }
-          event.preventDefault();
-          event.stopPropagation();
+          //   if (ctrlKey && key === "f") {
+          //     event.preventDefault();
+          //     event.stopPropagation();
+          //     if (!searching) {
+          //       searching = true;
+          //       callModal({
+          //         type: "search",
+          //         nodes: idea.flatNodes,
+          //         async onOk(input) {
+          //           console.log({ input });
+          //           return true;
+          //         },
+          //         async onCancel() {},
+          //         onClose() {
+          //           searching = false;
+          //         },
+          //       });
+          //     }
+          //   }
         }
       };
 

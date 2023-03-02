@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 export const Confirm = ({
   onClose,
@@ -6,28 +6,43 @@ export const Confirm = ({
   onOk,
   text = "Your idea will be collected in the directory",
 }) => {
+  const refer = useRef(null);
+
   useEffect(() => {
-    const handleKeyDown = async (event) => {
-      if (event.key === "Enter") {
-        if (await onOk?.()) {
-          onClose?.();
+    const dom = refer.current;
+    if (dom) {
+      let isPrevent = false;
+      const handleKeyDown = async (event) => {
+        console.log(event, event.key);
+        if (!isPrevent) {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            event.stopPropagation();
+            isPrevent = true;
+            if (await onOk?.()) {
+              onClose?.();
+            }
+            isPrevent = false;
+          }
+          if (event.key === "Escape") {
+            event.preventDefault();
+            event.stopPropagation();
+            isPrevent = true;
+            await onCancel?.();
+            isPrevent = false;
+            onClose?.();
+          }
         }
-      }
-      if (event.key === "Escape") {
-        await onCancel?.();
-        onClose?.();
-      }
-      event.preventDefault();
-      event.stopPropagation();
-    };
-    document.body.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [onClose]);
+      };
+      dom.addEventListener("keydown", handleKeyDown);
+      return () => {
+        dom.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  }, [onClose, refer.current]);
 
   return (
-    <div className="h-full flex flex-col rounded-2xl p-1">
+    <div className="h-full flex flex-col rounded-2xl p-1" ref={refer}>
       <div className="flex-1 flex items-center justify-center select-none font-bold p-3">
         {text}
       </div>
