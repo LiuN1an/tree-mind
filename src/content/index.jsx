@@ -2,6 +2,9 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./app";
 import styles from "./index.css";
+import { ChakraProvider } from "@chakra-ui/react";
+import { CacheProvider } from "@emotion/react";
+import createCache from "@emotion/cache";
 
 if (typeof init === "undefined") {
   const init = () => {
@@ -18,7 +21,18 @@ if (typeof init === "undefined") {
     const container = document.createElement("div");
     container.id = "_tree_idea_shadow";
     shadow.appendChild(container);
-    createRoot(container).render(<App />);
+
+    const myCache = createCache({
+      container: shadow,
+      key: "mainapplication",
+    });
+    createRoot(container).render(
+      <CacheProvider value={myCache}>
+        <ChakraProvider>
+          <App />
+        </ChakraProvider>
+      </CacheProvider>
+    );
   };
 
   init();

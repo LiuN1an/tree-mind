@@ -1,5 +1,6 @@
 import React from "react";
 import { createRoot, unmountComponentAtNode } from "react-dom/client";
+import { ReactDOM } from "react";
 import classnames from "classnames";
 import { useTailWindFade } from "./hooks";
 import { options } from "./template";
@@ -23,7 +24,7 @@ export const createEscape = (props) => {
 
   const myCache = createCache({
     container: escapeNode,
-    key: "b",
+    key: "modalapplication",
   });
   const Child = render({ onClose });
   root = createRoot(escapeNode);
@@ -100,12 +101,14 @@ export const CreateCover = ({
 
 export const callModal = (props) => {
   const { type, onClose } = props;
+  let close;
 
   const { component, width, height, leaveAnimate, enterAnimate } =
     options(type);
 
   createEscape({
     render: ({ onClose: onDestroy }) => {
+      close = onDestroy;
       return (
         <CreateCover
           {...props}
@@ -122,4 +125,8 @@ export const callModal = (props) => {
       );
     },
   });
+  return () => {
+    onClose?.();
+    close?.();
+  };
 };

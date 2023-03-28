@@ -1,37 +1,46 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@chakra-ui/react";
 
-export const Search = ({ nodes, onOk, onClose, onCancel }) => {
-  const [input, setInput] = useState("");
+export const Search = ({ nodes, onOk, onClose, onCancel, value = "" }) => {
+  const [input, setInput] = useState(value);
   const containerRef = useRef(null);
 
   useEffect(() => {
     const dom = containerRef?.current;
-    let isPrevent = false;
     const handleKeyDown = async (event) => {
-      if (!isPrevent) {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          event.stopPropagation();
-          isPrevent = true;
-          if (await onOk?.(input)) {
-            onClose?.();
-          }
-          isPrevent = false;
-        }
-        if (event.key === "Escape") {
-          event.preventDefault();
-          event.stopPropagation();
-          isPrevent = true;
-          await onCancel?.();
-          isPrevent = false;
+      if (event.key === "Enter") {
+        event.preventDefault();
+        event.stopPropagation();
+        if (await onOk?.(input)) {
           onClose?.();
+        }
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        await onCancel?.();
+        onClose?.();
+      } else {
+        // TODO: 这里缺一个可以阻断上层所有冲突键位的统一机制
+        const { altKey, key, ctrlKey, keyCode } = event;
+        if (ctrlKey && key === "q") {
+        }
+        if (
+          keyCode === 32 ||
+          keyCode === 8 ||
+          keyCode === 46 ||
+          keyCode === 38 ||
+          keyCode === 40 ||
+          keyCode === 37 ||
+          keyCode === 39
+        ) {
+          event.stopPropagation();
         }
       }
     };
-    dom?.addEventListener("keydown", handleKeyDown);
+
+    dom?.addEventListener("keydown", handleKeyDown, true);
     return () => {
-      dom?.removeEventListener("keydown", handleKeyDown);
+      dom?.removeEventListener("keydown", handleKeyDown, true);
     };
   }, [onClose, containerRef.current, input]);
 
@@ -43,10 +52,13 @@ export const Search = ({ nodes, onOk, onClose, onCancel }) => {
       <div className="h-12 p-3 box-border">
         <Input
           placeholder="请输入思维节点描述"
-          value={input}
+          defaultValue={input}
           autoFocus
           onChange={(event) => {
             setInput(event.target.value);
+          }}
+          onBlur={() => {
+            onClose?.();
           }}
         />
       </div>

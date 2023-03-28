@@ -11,32 +11,22 @@ export const Confirm = ({
   useEffect(() => {
     const dom = refer.current;
     if (dom) {
-      let isPrevent = false;
       const handleKeyDown = async (event) => {
-        console.log(event, event.key);
-        if (!isPrevent) {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            event.stopPropagation();
-            isPrevent = true;
-            if (await onOk?.()) {
-              onClose?.();
-            }
-            isPrevent = false;
-          }
-          if (event.key === "Escape") {
-            event.preventDefault();
-            event.stopPropagation();
-            isPrevent = true;
-            await onCancel?.();
-            isPrevent = false;
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.key === "Enter") {
+          if (await onOk?.()) {
             onClose?.();
           }
         }
+        if (event.key === "Escape") {
+          await onCancel?.();
+          onClose?.();
+        }
       };
-      dom.addEventListener("keydown", handleKeyDown);
+      document.body.addEventListener("keydown", handleKeyDown, true);
       return () => {
-        dom.removeEventListener("keydown", handleKeyDown);
+        document.body.removeEventListener("keydown", handleKeyDown, true);
       };
     }
   }, [onClose, refer.current]);

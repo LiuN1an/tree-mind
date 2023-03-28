@@ -30,7 +30,7 @@ shadow.appendChild(container);
 
 const myCache = createCache({
   container: shadow,
-  key: "c",
+  key: "mainapplication",
 });
 
 createRoot(container).render(

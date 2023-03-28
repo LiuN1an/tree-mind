@@ -35,11 +35,21 @@ export default function App() {
 
   const contentRef = useRef(null);
   const barRef = useRef(null);
+  const rootRef = useRef(null);
   const [node, setNode] = useState(null);
   const [activeCoordinate, setCoordinate] = useState({});
   const [bars, setBars] = useState([]);
   const [ghost, setGhost] = useState(null);
+  const [value, setValue] = useState("");
   const [notAllowMove, setNotAllowMove] = useState(false);
+
+  useEffect(() => {
+    if (ghost) {
+      return ghost.onChange(({ value }) => {
+        setValue(value);
+      });
+    }
+  }, [ghost]);
 
   const change = useCallback(
     (status) => {
@@ -71,45 +81,6 @@ export default function App() {
       }
     }
   }, [barRef.current, bars]);
-
-  //   useEffect(() => {
-  //     if (process.env.NODE_ENV !== "development") {
-  //       const handleKeyDown = (event) => {
-  //         if (event.key == "Enter") {
-  //           event.preventDefault();
-  //           event.stopPropagation();
-  //           if (inputBtn.value == "123") {
-  //             // searchBtn.click();
-  //             setCover(true);
-  //             setModal(true);
-  //             inputBtn.blur();
-  //           } else {
-  //             setCover(false);
-  //             setModal(false);
-  //           }
-  //         }
-  //         if (event.key == "Escape") {
-  //           inputBtn.focus();
-  //           setCover(false);
-  //           setModal(false);
-  //           event.preventDefault();
-  //           event.stopPropagation();
-  //         }
-  //         if (event.keyCode === 38) {
-  //         }
-  //         if (event.keyCode === 40) {
-  //         }
-  //       };
-  //       const handleKeyUp = () => {};
-
-  //       document.addEventListener("keydown", handleKeyDown);
-  //       document.addEventListener("keyup", handleKeyUp);
-  //       return () => {
-  //         document.removeEventListener("keydown", handleKeyDown);
-  //         document.removeEventListener("keyup", handleKeyUp);
-  //       };
-  //     }
-  //   }, [inputBtn, searchBtn]);
 
   useEffect(() => {
     if (modelOpen) {
@@ -155,20 +126,21 @@ export default function App() {
         }
       }
     };
-    document.addEventListener("keydown", handleTrigger);
+    document.body.addEventListener("keydown", handleTrigger);
     return () => {
-      document.removeEventListener("keydown", handleTrigger);
+      document.body.removeEventListener("keydown", handleTrigger);
     };
   }, [modelOpen, change]);
 
   useEffect(() => {
-    if (node && contentRef.current && barRef.current) {
+    if (node && contentRef.current && barRef.current && rootRef.current) {
       const { height: unit, width } =
         contentRef.current.getBoundingClientRect();
       const removeSelectChange = idea.onSelectChange(
         ({ selected, added, removed, index }) => {
           if (added && added.vm && added.vm.valueRef) {
             setGhost(added);
+            setValue(added.value);
             const rect = added.vm.valueRef.getBoundingClientRect();
             const index = idea.flatNodes
               .filter((node) => !node.vm.isBeCollapsed() || node === added)
@@ -195,11 +167,34 @@ export default function App() {
         }
       );
 
-      let isOpenModal = [];
-
       const move = throttle((event) => {
+        event.stopPropagation();
+
         const [node] = idea.selected;
 
+        if (event.keyCode === 32) {
+          if (isSelectRoot) return;
+          callModal({
+            type: "search",
+            value: node.value,
+            async onOk(input) {
+              if (!input) return false;
+              node.edit(input);
+              idea.save();
+              return true;
+            },
+          });
+        }
+
+        if (event.keyCode === 8 || event.keyCode === 46) {
+          callModal({
+            type: "confirm",
+            text: "Are you sure to delete it ?",
+            async onOk() {
+              return true;
+            },
+          });
+        }
         // if (event.keyCode === 8) {
         //   if (!isOpenModal) {
         //     callModal({
@@ -243,46 +238,23 @@ export default function App() {
         // }
 
         if (event.keyCode === 13) {
-          if (isOpenModal.length === 0) {
-            isOpenModal.push(true);
-            callModal({
-              type: "search",
-              async onOk(input) {
-                isOpenModal.push(true);
-                return await new Promise((resolve) => {
-                  callModal({
-                    type: "confirm",
-                    async onOk() {
-                      if (isSelectRoot) {
-                        idea.root.addChild(new Node(input, idea.root));
-                      } else {
-                        node.addChild(new Node(input, node));
-                      }
-                      idea.save();
-                      change(false);
-                      resolve(true);
-                      return true;
-                    },
-                    async onCancel() {
-                      resolve(false);
-                      console.log("cancel");
-                    },
-                    onClose() {
-                      isOpenModal.pop();
-                    },
-                  });
-                });
-              },
-              onClose() {
-                isOpenModal.pop();
-              },
-            });
-          }
+          callModal({
+            type: "search",
+            async onOk(input) {
+              if (!input) return false;
+              if (isSelectRoot) {
+                idea.add(input, idea.root);
+              } else {
+                idea.add(input, node);
+                // node.addChild(new Node(input, node));
+              }
+              idea.save();
+              return true;
+            },
+          });
         }
 
-        // 上
-        if (event.keyCode === 38) {
-          if (isSelectRoot) return;
+        const up = () => {
           const prev = idea.inOrderPrev(
             node,
             (node) => !node.vm.isBeCollapsed()
@@ -290,10 +262,8 @@ export default function App() {
           if (prev && prev.vm) {
             prev.vm.select({ exclusive: true });
           }
-        }
-        // 下
-        if (event.keyCode === 40) {
-          if (isSelectRoot) return;
+        };
+        const down = () => {
           if (idea.selected.length > 0) {
             const nxt = idea.inOrderNext(
               node,
@@ -303,10 +273,8 @@ export default function App() {
               nxt.vm.select({ exclusive: true });
             }
           }
-        }
-        // 左
-        if (event.keyCode === 37) {
-          if (isSelectRoot) return;
+        };
+        const left = () => {
           const isLeaf = !(node.children && node.children.length);
           if (!isLeaf && !node.vm.isCollapse()) {
             node.vm.collapse();
@@ -319,9 +287,8 @@ export default function App() {
               node.parent.vm.select({ exclusive: true });
             }
           }
-        }
-        // 右
-        if (event.keyCode === 39) {
+        };
+        const right = () => {
           if (isSelectRoot) {
             idea.root.children &&
               idea.root.children.length &&
@@ -330,8 +297,28 @@ export default function App() {
             const isLeaf = !(node.children && node.children.length);
             if (!isLeaf && node.vm.isCollapse()) {
               node.vm.uncollapse();
+              return true;
             }
           }
+        };
+
+        // 上
+        if (event.keyCode === 38) {
+          if (isSelectRoot) return;
+          up();
+        } // 下
+        if (event.keyCode === 40) {
+          if (isSelectRoot) return;
+          down();
+        }
+        // 左
+        if (event.keyCode === 37) {
+          if (isSelectRoot) return;
+          left();
+        }
+        // 右
+        if (event.keyCode === 39) {
+          right() && down();
         }
       }, 150);
 
@@ -384,7 +371,7 @@ export default function App() {
   ]);
 
   return (
-    <div className="less-test-container">
+    <div className="less-test-container" ref={rootRef}>
       <div
         data-x="cover"
         className={classnames(
@@ -461,7 +448,7 @@ export default function App() {
             data-x="select-container"
           >
             <div className="flex h-full text-white font-bold items-center p-2">
-              {ghost ? ghost.value : ""}
+              {value ? value : ""}
             </div>
           </motion.div>
           {node && <Nodes node={node} />}
@@ -527,6 +514,13 @@ export default function App() {
 
 export const BarNode = ({ node, isLast }) => {
   const { style } = useTailWindFade({ open: true });
+  const [value, setValue] = useState(node.value);
+
+  useEffect(() => {
+    return node.onChange(({ value }) => {
+      setValue(value);
+    });
+  }, [node]);
 
   return (
     <div
@@ -547,7 +541,7 @@ export const BarNode = ({ node, isLast }) => {
           node.vm.select({ exclusive: true });
         }}
       >
-        {node.value}
+        {value}
       </div>
       {!isLast && <div>{">"}</div>}
     </div>

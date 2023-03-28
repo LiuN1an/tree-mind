@@ -47,6 +47,11 @@ export class Node {
     return _node;
   }
 
+  edit(input) {
+    this.value = input;
+    this.#_emitter.emit("change", { value: input });
+  }
+
   export() {
     return {
       value: this.value,
@@ -59,6 +64,7 @@ export class Node {
       this.children = [];
     }
     this.children.push(child);
+    this.#_emitter.emit("add", this.children);
   }
 
   removeChild(child) {

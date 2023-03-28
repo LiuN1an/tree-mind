@@ -93,7 +93,17 @@ export class Idea {
   }
 
   add(search, contextNode) {
-    contextNode.addChild(new Node(search, contextNode));
+    const node = new Node(search, contextNode);
+    const findLast = (_n) => {
+      if (!_n.children || _n.children.length === 0) return _n;
+      return findLast(_n.children[_n.children.length - 1]);
+    };
+    const last = findLast(contextNode);
+    contextNode.addChild(node);
+    const index = this.index(last.id);
+    if (index !== -1) {
+      this.flatNodes.splice(index + 1, 0, node);
+    }
     this.#_emitter.emit("change");
   }
 
@@ -139,27 +149,27 @@ export class Idea {
    * 按照前序遍历的顺序返回下一个节点，额外传入一个判断该节点是否准确的条件函数
    */
   inOrderNext(_node, conditionFn = () => true) {
-    const index = idea.flatNodes.findIndex((node) => node === _node);
+    const index = this.flatNodes.findIndex((node) => node === _node);
     if (index > -1) {
       const findNode = (index) => {
-        if (conditionFn(idea.flatNodes[index])) {
-          return idea.flatNodes[index];
+        if (conditionFn(this.flatNodes[index])) {
+          return this.flatNodes[index];
         } else {
-          if (index + 1 >= idea.flatNodes.length) return;
+          if (index + 1 >= this.flatNodes.length) return;
           return findNode(index + 1);
         }
       };
-      if (index + 1 >= idea.flatNodes.length) return;
+      if (index + 1 >= this.flatNodes.length) return;
       return findNode(index + 1);
     }
   }
 
   inOrderPrev(_node, conditionFn = () => true) {
-    const index = idea.flatNodes.findIndex((node) => node === _node);
+    const index = this.flatNodes.findIndex((node) => node === _node);
     if (index > -1) {
       const findNode = (index) => {
-        if (conditionFn(idea.flatNodes[index % idea.flatNodes.length])) {
-          return idea.flatNodes[index];
+        if (conditionFn(this.flatNodes[index % this.flatNodes.length])) {
+          return this.flatNodes[index];
         } else {
           if (index - 1 < 0) return;
           return findNode(index - 1);

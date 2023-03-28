@@ -35,6 +35,7 @@ export const Nodes = ({ node }) => {
   const [height, setHeight] = useState("0px");
   const [containHeight, setContainHeight] = useState("0px");
   const [childSelect, setChildSelect] = useState(false);
+  const [value, setValue] = useState(node.value);
   const [childs, setChilds] = useState(node.children || []);
   const containRef = useRef(null);
   const valueRef = useRef(null);
@@ -58,12 +59,16 @@ export const Nodes = ({ node }) => {
       const onChildsRemove = node.onChildrenRemove((childs) => {
         setChilds([...childs]);
       });
+      const onChanged = node.onChange(({ value }) => {
+        setValue(value);
+      });
 
       return () => {
         onSelect();
         onChildSelect();
         onChildsAdd();
         onChildsRemove();
+        onChanged();
       };
     }
   }, [node]);
@@ -160,7 +165,7 @@ export const Nodes = ({ node }) => {
           style={{ height: `${CELL_HEIGHT}px` }}
           ref={(ele) => (valueRef.current = ele)}
         >
-          {node.value}
+          {value}
           {!isLeaf && (
             <CollapseIcon
               className={classnames(
