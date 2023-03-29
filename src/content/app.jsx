@@ -138,6 +138,12 @@ export default function App() {
         contentRef.current.getBoundingClientRect();
       const removeSelectChange = idea.onSelectChange(
         ({ selected, added, removed, index }) => {
+          if (removed && idea.flatNodes.length === 0) {
+            setGhost(null);
+            setValue(null);
+            setCoordinate({});
+            setBars([]);
+          }
           if (added && added.vm && added.vm.valueRef) {
             setGhost(added);
             setValue(added.value);
@@ -161,9 +167,9 @@ export default function App() {
                 width: rect.width + 2,
               });
             }
+            const parentChain = getParentChain(added);
+            setBars(parentChain);
           }
-          const parentChain = getParentChain(added);
-          setBars(parentChain);
         }
       );
 
@@ -186,81 +192,15 @@ export default function App() {
           });
         }
 
-        if (event.keyCode === 8 || event.keyCode === 46) {
-          callModal({
-            type: "confirm",
-            text: "Are you sure to delete it ?",
-            async onOk() {
-              return true;
-            },
-          });
-        }
-        // if (event.keyCode === 8) {
-        //   if (!isOpenModal) {
-        //     callModal({
-        //       type: "confirm",
-        //       text: "Are you to delete this idea?",
-        //       onClose() {
-        //         isOpenModal = false;
-        //       },
-        //       async onOk() {
-        //         let selected;
-        //         const prev = idea.inOrderPrev(
-        //           node,
-        //           (node) => !node.vm.isBeCollapsed()
-        //         );
-        //         if (prev && prev.vm) {
-        //           selected = prev;
-        //         } else {
-        //           const nxt = idea.inOrderNext(
-        //             node,
-        //             (node) => !node.vm.isBeCollapsed()
-        //           );
-        //           if (nxt && nxt.vm) {
-        //             selected = nxt;
-        //           }
-        //         }
-        //         node.remove();
-        //         if (selected) {
-        //           selected.vm.select({ exclusive: true });
-        //         } else {
-        //           setSelectRoot(true);
-        //         }
-        //         idea.save();
-        //         return true;
-        //       },
-        //       async onCancel() {
-        //         console.log("cancel");
-        //       },
-        //     });
-        //     isOpenModal = true;
-        //   }
-        // }
-
-        if (event.keyCode === 13) {
-          callModal({
-            type: "search",
-            async onOk(input) {
-              if (!input) return false;
-              if (isSelectRoot) {
-                idea.add(input, idea.root);
-              } else {
-                idea.add(input, node);
-                // node.addChild(new Node(input, node));
-              }
-              idea.save();
-              return true;
-            },
-          });
-        }
-
         const up = () => {
           const prev = idea.inOrderPrev(
             node,
             (node) => !node.vm.isBeCollapsed()
           );
           if (prev && prev.vm) {
-            prev.vm.select({ exclusive: true });
+            return () => {
+              prev.vm.select({ exclusive: true });
+            };
           }
         };
         const down = () => {
@@ -270,7 +210,9 @@ export default function App() {
               (node) => !node.vm.isBeCollapsed()
             );
             if (nxt && nxt.vm) {
-              nxt.vm.select({ exclusive: true });
+              return () => {
+                nxt.vm.select({ exclusive: true });
+              };
             }
           }
         };
@@ -302,14 +244,63 @@ export default function App() {
           }
         };
 
+        if (event.keyCode === 13) {
+          callModal({
+            type: "search",
+            async onOk(input) {
+              if (!input) return false;
+              if (isSelectRoot) {
+                const n = idea.add(input, idea.root);
+                setSelectRoot(false);
+                setTimeout(() => {
+                  n.vm.select({ exclusive: true });
+                }, 100);
+              } else {
+                const n = idea.add(input, node);
+                // node.addChild(new Node(input, node));
+                setTimeout(() => {
+                  n.vm.select({ exclusive: true });
+                }, 100);
+              }
+              idea.save();
+              return true;
+            },
+          });
+        }
+
+        if (event.keyCode === 8 || event.keyCode === 46) {
+          callModal({
+            type: "confirm",
+            text: "Are you sure to delete it ?",
+            async onOk() {
+              const selectDown = down();
+              const selectTop = up();
+              node.remove();
+              if (selectDown) {
+                selectDown();
+              } else {
+                if (selectTop) {
+                  selectTop();
+                } else {
+                  left();
+                }
+              }
+              idea.save();
+              return true;
+            },
+          });
+        }
+
         // 上
         if (event.keyCode === 38) {
           if (isSelectRoot) return;
-          up();
+          const select = up();
+          select && select();
         } // 下
         if (event.keyCode === 40) {
           if (isSelectRoot) return;
-          down();
+          const select = down();
+          select && select();
         }
         // 左
         if (event.keyCode === 37) {
@@ -318,7 +309,10 @@ export default function App() {
         }
         // 右
         if (event.keyCode === 39) {
-          right() && down();
+          if (right()) {
+            const select = down();
+            select();
+          }
         }
       }, 150);
 
@@ -517,9 +511,12 @@ export const BarNode = ({ node, isLast }) => {
   const [value, setValue] = useState(node.value);
 
   useEffect(() => {
-    return node.onChange(({ value }) => {
+    const unChange = node.onChange(({ value }) => {
       setValue(value);
     });
+    return () => {
+      unChange();
+    };
   }, [node]);
 
   return (

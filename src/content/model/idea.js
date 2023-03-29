@@ -66,6 +66,10 @@ export class Idea {
     this.flatNodes = this.flatNodes.filter(
       (child) => !newFlat.includes(child)
     );
+    const index = this.selected.findIndex((s) => s === node);
+    if (index > -1) {
+      this.removeSelected(index);
+    }
   }
 
   fresh() {
@@ -105,6 +109,7 @@ export class Idea {
       this.flatNodes.splice(index + 1, 0, node);
     }
     this.#_emitter.emit("change");
+    return node;
   }
 
   index(id) {
@@ -129,6 +134,13 @@ export class Idea {
     this.#_emitter.on("select-change", fn);
     return () => {
       this.#_emitter.off("select-change", fn);
+    };
+  }
+
+  onSelectClean(fn) {
+    this.#_emitter.on("select-clean", fn);
+    return () => {
+      this.#_emitter.off("select-clean", fn);
     };
   }
 
