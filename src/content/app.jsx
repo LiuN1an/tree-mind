@@ -135,7 +135,11 @@ export default function App() {
             setValue(null);
             setCoordinate({});
             setBars([]);
+            return;
           }
+          if (removed) {
+          }
+
           if (added && added.vm && added.vm.valueRef) {
             setGhost(added);
             setValue(added.value);
