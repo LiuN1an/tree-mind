@@ -1,15 +1,8 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { callModal, useTailWindFade } from "../utils/index";
 import classnames from "classnames";
 import { idea, CELL_HEIGHT, getParentChain } from "./model";
 import { Nodes } from "./node";
-import { Node } from "./model/node";
 import { motion } from "framer-motion";
 import throttle from "lodash.throttle";
 import "./index.less";
@@ -86,27 +79,26 @@ export default function App() {
     if (modelOpen) {
       const removeInit = idea.onInit(({ data, rootNode }) => {
         setNode(rootNode);
-        if (rootNode.children && rootNode.children.length) {
-          rootNode.children[0].vm.onChildMount((dom) => {
-            setTimeout(() => {
-              if (dom) {
-                const rect = dom.getBoundingClientRect();
-                setCoordinate(
-                  {
-                    x: 0,
-                    y: 0,
-                    width: rect.width + 2,
-                  },
-                  100
-                );
-                rootNode.children[0].vm.select();
-              }
-            }, 100);
-          });
-        } else {
+        if (!rootNode.children || rootNode.children.length === 0) {
           setSelectRoot(true);
           idea.pushSelected(rootNode);
         }
+        rootNode.onFirstChildMount(({ dom }) => {
+          setTimeout(() => {
+            if (dom) {
+              const rect = dom.getBoundingClientRect();
+              setCoordinate(
+                {
+                  x: 0,
+                  y: 0,
+                  width: rect.width + 2,
+                },
+                100
+              );
+              rootNode.children[0].vm.select({ exclusive: true });
+            }
+          }, 0);
+        });
       });
       return () => {
         removeInit();
@@ -118,7 +110,7 @@ export default function App() {
 
   useEffect(() => {
     const handleTrigger = (evnet) => {
-      const { altKey, key, ctrlKey } = event;
+      const { key, ctrlKey } = event;
       if (ctrlKey && key === "q") {
         if (!modelOpen) {
           change(true);
@@ -254,7 +246,6 @@ export default function App() {
                 }, 100);
               } else {
                 const n = idea.add(input, node);
-                // node.addChild(new Node(input, node));
                 setTimeout(() => {
                   n.vm.select({ exclusive: true });
                 }, 100);
@@ -267,6 +258,7 @@ export default function App() {
 
         // 删除
         if (event.keyCode === 8 || event.keyCode === 46) {
+          if (isSelectRoot) return;
           callModal({
             type: "confirm",
             text: "Are you sure to delete it ?",

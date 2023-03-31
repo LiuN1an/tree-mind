@@ -47,6 +47,19 @@ export class Node {
     return _node;
   }
 
+  checkIsFirstChild(node) {
+    if (node.root().children[0] === node) {
+      this.#_emitter.emit("first-child-mount", { dom: node.vm.valueRef });
+    }
+  }
+
+  onFirstChildMount(fn) {
+    this.#_emitter.on("first-child-mount", fn);
+    return () => {
+      this.#_emitter.off("first-child-mount", fn);
+    };
+  }
+
   edit(input) {
     this.value = input;
     this.#_emitter.emit("change", { value: input });

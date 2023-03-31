@@ -27,6 +27,7 @@ export class VM {
   addValueRef(dom) {
     this.valueRef = dom;
     this.#_emitter.emit("value-ref", dom);
+    this.model.root().checkIsFirstChild(this.model);
   }
 
   onChildMount(fn) {

@@ -63,9 +63,7 @@ export class Idea {
 
   remove(node) {
     const newFlat = this.flat(node);
-    this.flatNodes = this.flatNodes.filter(
-      (child) => !newFlat.includes(child)
-    );
+    this.flatNodes = this.flatNodes.filter((child) => !newFlat.includes(child));
     const index = this.selected.findIndex((s) => s === node);
     if (index > -1) {
       this.removeSelected(index);
@@ -107,6 +105,8 @@ export class Idea {
     const index = this.index(last.id);
     if (index !== -1) {
       this.flatNodes.splice(index + 1, 0, node);
+    } else if (this.flatNodes.length === 0) {
+      this.flatNodes.push(node);
     }
     this.#_emitter.emit("change");
     return node;
