@@ -159,10 +159,7 @@ export default function App() {
                 behavior: "smooth",
               });
               setCoordinate({
-                x:
-                  (added.depth - 1) * 10 < 0
-                    ? 1
-                    : (added.depth - 1) * 10 + 1,
+                x: (added.depth - 1) * 10 < 0 ? 1 : (added.depth - 1) * 10 + 1,
                 y: CELL_HEIGHT * index + index * 4 - (added.depth - 2) * 2,
                 width: rect.width + 2,
               });
@@ -268,6 +265,7 @@ export default function App() {
           });
         }
 
+        // 删除
         if (event.keyCode === 8 || event.keyCode === 46) {
           callModal({
             type: "confirm",
@@ -316,7 +314,6 @@ export default function App() {
         }
       }, 150);
 
-      let searching = false;
       const handleMove = (event) => {
         if (modelOpen) {
           move(event);

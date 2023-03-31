@@ -21,10 +21,9 @@ export const Search = ({ nodes, onOk, onClose, onCancel, value = "" }) => {
         onClose?.();
       } else {
         // TODO: 这里缺一个可以阻断上层所有冲突键位的统一机制
-        const { altKey, key, ctrlKey, keyCode } = event;
-        if (ctrlKey && key === "q") {
-        }
+        const { key, ctrlKey, keyCode } = event;
         if (
+          (ctrlKey && key === "q") ||
           keyCode === 32 ||
           keyCode === 8 ||
           keyCode === 46 ||
