@@ -63,7 +63,9 @@ export class Idea {
 
   remove(node) {
     const newFlat = this.flat(node);
-    this.flatNodes = this.flatNodes.filter((child) => !newFlat.includes(child));
+    this.flatNodes = this.flatNodes.filter(
+      (child) => !newFlat.includes(child)
+    );
     const index = this.selected.findIndex((s) => s === node);
     if (index > -1) {
       this.removeSelected(index);

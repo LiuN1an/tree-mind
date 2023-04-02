@@ -155,7 +155,10 @@ export default function App() {
                 behavior: "smooth",
               });
               setCoordinate({
-                x: (added.depth - 1) * 10 < 0 ? 1 : (added.depth - 1) * 10 + 1,
+                x:
+                  (added.depth - 1) * 10 < 0
+                    ? 1
+                    : (added.depth - 1) * 10 + 1,
                 y: CELL_HEIGHT * index + index * 4 - (added.depth - 2) * 2,
                 width: rect.width + 2,
               });
@@ -196,11 +199,12 @@ export default function App() {
             };
           }
         };
-        const down = () => {
+        const down = (inCludeChild = true) => {
           if (idea.selected.length > 0) {
-            const nxt = idea.inOrderNext(
-              node,
-              (node) => !node.vm.isBeCollapsed()
+            const nxt = idea.inOrderNext(node, (_n) =>
+              inCludeChild
+                ? !_n.vm.isBeCollapsed()
+                : !_n.path().includes(node)
             );
             if (nxt && nxt.vm) {
               return () => {
@@ -267,7 +271,7 @@ export default function App() {
             type: "confirm",
             text: "Are you sure to delete it ?",
             async onOk() {
-              const selectDown = down();
+              const selectDown = down(false);
               const selectTop = up();
               node.remove();
               if (selectDown) {
